@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import           Pull
 
 main :: IO ()
-main = runPull
+main = Pull.run
