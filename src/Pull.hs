@@ -12,7 +12,7 @@ import qualified Filesystem.Path.CurrentOS as Path
 import Control.Exception
 
 dirs :: IO [FilePath]
-dirs = getCurrentDirectory >>= listDirectory
+dirs = fmap (filter (not . isHiddenDir)) (getCurrentDirectory >>= listDirectory)
 
 gitpull :: FilePath -> IO ()
 gitpull f = do
@@ -31,6 +31,10 @@ runUpdate _ = do
 
 toDir :: FilePath -> Path.FilePath
 toDir = Path.fromText . Text.pack
+
+isHiddenDir :: FilePath -> Bool
+isHiddenDir [] = False
+isHiddenDir (x:_) = x == '.'
 
 run :: IO ()
 run = do
