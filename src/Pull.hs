@@ -2,17 +2,17 @@
 
 module Pull where
 
-import qualified Data.Text                 as Text
-import           System.Directory
-import qualified Turtle.Prelude            as T
-import           Control.Monad             (when)
+import           Control.Exception
+import           Control.Monad             (filterM, when)
 import           Control.Monad.Managed     (with)
+import qualified Data.Text                 as Text
 import qualified Filesystem.Path           as Path
 import qualified Filesystem.Path.CurrentOS as Path
-import Control.Exception
+import           System.Directory
+import qualified Turtle.Prelude            as T
 
 dirs :: IO [FilePath]
-dirs = fmap (filter (not . isHiddenDir)) (getCurrentDirectory >>= listDirectory)
+dirs = getCurrentDirectory >>= listDirectory >>= filterM isDirectory
 
 gitpull :: FilePath -> IO ()
 gitpull f = do
@@ -32,9 +32,12 @@ runUpdate _ = do
 toDir :: FilePath -> Path.FilePath
 toDir = Path.fromText . Text.pack
 
-isHiddenDir :: FilePath -> Bool
-isHiddenDir [] = False
-isHiddenDir (x:_) = x == '.'
+isDirectory :: FilePath -> IO Bool
+isDirectory [] = return False
+isDirectory f = do
+  a <- doesDirectoryExist f
+  b <- pathIsSymbolicLink f
+  return (a && b == False && (head f /= '.'))
 
 run :: IO ()
 run = do
